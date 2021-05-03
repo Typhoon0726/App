@@ -15,7 +15,7 @@ origins = [
     "http://localhost:8000",
     "http://typhoon890726.ddns.net:8000",
     "http://typhoon200000726.ddns.net:8000",
-    "http://61.62.207.234:8000"
+    "http://61.62.207.113:8000"
 ]
 
 app.add_middleware(
