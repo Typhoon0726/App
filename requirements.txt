@@ -1,0 +1,4 @@
+root@3a***a3:/home/site/wwwroot# pip install fastapi
+root@3a***a3:/home/site/wwwroot# pip install uvicorn
+root@3a***a3:/home/site/wwwroot# pip install uvloop
+root@3a***a3:/home/site/wwwroot# pip install httptools
