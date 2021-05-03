@@ -98,4 +98,4 @@ async def get_Recipe_Soup(num: int, veg: Optional[str] = None, meat: Optional[st
     return df.to_dict('r')
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="localhost", port="8000")
+    uvicorn.run(app='main:app', host="localhost", port="8000")
