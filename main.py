@@ -2,6 +2,7 @@ import pyodbc
 import pandas as pd
 from fastapi import FastAPI
 from typing import Optional
+import uvicorn
 
 app = FastAPI()
 
@@ -95,3 +96,6 @@ async def get_Recipe_Soup(num: int, veg: Optional[str] = None, meat: Optional[st
             query = query+"OR "
     df = pd.read_sql(query, cnxn)
     return df.to_dict('r')
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="localhost", port="8000")
