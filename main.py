@@ -49,7 +49,7 @@ async def get_Price_Meat(meat: str):
     return df.to_dict('r')
 
 
-@app.get('/price/veg/{fish}')
+@app.get('/price/fish/{fish}')
 async def get_Price_Fish(fish: str):
     fish_n = fish.split(',')
     Price_3 = {'fish': fish_n}
