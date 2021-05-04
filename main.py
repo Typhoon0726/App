@@ -53,11 +53,12 @@ async def get_Price_Meat(meat: str):
 async def get_Price_Fish(fish: str):
     fish_n = fish.split(',')
     Price_3 = {'fish': fish_n}
-    query = "SELECT 魚貨名稱,平均價 FROM dbo.Fish WHERE "
+    query = "SELECT 魚貨名稱,AVG(平均價) FROM dbo.Fish WHERE "
     for i in range(0, len(Price_3['fish'])):
         query += "魚貨名稱 LIKE (N'%"+Price_3['fish'][i]+"%') "
         if i != len(Price_3['fish'])-1:
             query += "OR "
+        query += "GROUP BY 魚貨名稱"
     df = pd.read_sql(query, cnxn)
     return df.to_dict('r')
 
