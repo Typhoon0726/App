@@ -34,15 +34,17 @@ async def get_Price_Veg(veg: str):
 async def get_Price_Meat(meat: str):
     meat_n = meat.split(',')
     Price_2 = {'meat': meat_n}
-    query = "SELECT "
+    query = "SELECT TOP 1 日期,"
     for i in range(0, len(Price_2['meat'])):
         if Price_2['meat'][i] == '雞肉':
-            query += "白肉雞(門市價高屏)"
-            if len(Price_2['meat']) >= 2:
+            query += '"白肉雞(門市價高屏)"'
+            if len(Price_2['meat']) >= 2 and i == 0:
                 query += ","
         elif Price_2['meat'][i] == '雞蛋':
-            query += "雞蛋(產地)"
-    query += " FROM dbo.Meat LIMIT 1"
+            query += '"雞蛋(產地)"'
+            if len(Price_2['meat']) >= 2 and i == 0:
+                query += ","
+    query += " FROM dbo.Meat"
     df = pd.read_sql(query, cnxn)
     return df.to_dict('r')
 
@@ -54,7 +56,7 @@ async def get_Price_Fish(fish: str):
     query = "SELECT 魚貨名稱,平均價 FROM dbo.Fish WHERE "
     for i in range(0, len(Price_3['fish'])):
         query += "魚貨名稱 LIKE (N'%"+Price_3['fish'][i]+"%') "
-        if i != len(Price_3['veg'])-1:
+        if i != len(Price_3['fish'])-1:
             query += "OR "
     df = pd.read_sql(query, cnxn)
     return df.to_dict('r')
