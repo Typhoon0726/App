@@ -58,7 +58,7 @@ async def get_Price_Fish(fish: str):
         query += "魚貨名稱 LIKE (N'%"+Price_3['fish'][i]+"%') "
         if i != len(Price_3['fish'])-1:
             query += "OR "
-        query += "GROUP BY 魚貨名稱"
+    query += "GROUP BY 魚貨名稱"
     df = pd.read_sql(query, cnxn)
     return df.to_dict('r')
 
