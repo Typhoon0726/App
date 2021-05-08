@@ -85,7 +85,7 @@ async def get_Recipe_Normal(num: int, veg: Optional[str] = None, meat: Optional[
     query += '"白肉雞(門市價高屏)"'
     query += "+Price3.魚貨價格) IS NULL THEN 1 ELSE 0 END, AVG(Price1.平均價+Price2."
     query += '"白肉雞(門市價高屏)"'
-    query += ") ASC"
+    query += "+Price3.魚貨價格) ASC"
     df = pd.read_sql(query, cnxn)
     return df.to_dict('r')
 
@@ -113,7 +113,7 @@ async def get_Recipe_Soup(num: int, veg: Optional[str] = None, meat: Optional[st
     query += '"白肉雞(門市價高屏)"'
     query += "+Price3.魚貨價格) IS NULL THEN 1 ELSE 0 END, AVG(Price1.平均價+Price2."
     query += '"白肉雞(門市價高屏)"'
-    query += ") ASC"
+    query += "+Price3.魚貨價格) ASC"
     df = pd.read_sql(query, cnxn)
     return df.to_dict('r')
 
