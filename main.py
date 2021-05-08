@@ -26,7 +26,7 @@ async def get_Price_Veg(veg: str):
         if i != len(Price_1['veg'])-1:
             query += "OR "
     df = pd.read_sql(query, cnxn)
-    return df.to_dict('r')
+    return df
 
 
 @app.get('/price/meat/{meat}')
@@ -45,7 +45,7 @@ async def get_Price_Meat(meat: str):
                 query += ","
     query += " FROM dbo.Meat"
     df = pd.read_sql(query, cnxn)
-    return df.to_dict('r')
+    return df
 
 
 @app.get('/price/fish/{fish}')
@@ -59,7 +59,7 @@ async def get_Price_Fish(fish: str):
             query += "OR "
     query += "GROUP BY 魚貨名稱"
     df = pd.read_sql(query, cnxn)
-    return df.to_dict('r')
+    return df
 
 
 @app.get('/recipe/normal/{num}')
@@ -81,9 +81,13 @@ async def get_Recipe_Normal(num: int, veg: Optional[str] = None, meat: Optional[
         query += "魚食材 LIKE (N'%"+Request_N['fish'][k]+"%') "
         if k != len(Request_N['fish'])-1:
             query += "OR "
-    query += "GROUP BY 食譜名稱,CONCAT(菜食材,',',肉食材,',',魚食材,',',其他食材),料理步驟,圖片來源 ORDER BY 料理價格 ASC"
+    query += "GROUP BY 食譜名稱,CONCAT(菜食材,',',肉食材,',',魚食材,',',其他食材),料理步驟,圖片來源 ORDER BY CASE WHEN AVG(Price1.平均價+Price2."
+    query += '"白肉雞(門市價高屏)"'
+    query += "+Price3.魚貨價格) IS NULL THEN 1 ELSE 0 END, AVG(Price1.平均價+Price2."
+    query += '"白肉雞(門市價高屏)"'
+    query += ") ASC"
     df = pd.read_sql(query, cnxn)
-    return df.to_dict('r')
+    return df
 
 
 @app.get('/recipe/soup/{num}')
@@ -107,7 +111,7 @@ async def get_Recipe_Soup(num: int, veg: Optional[str] = None, meat: Optional[st
             query += "OR "
     query += "GROUP BY 食譜名稱,CONCAT(菜食材,',',肉食材,',',魚食材,',',其他食材),料理步驟,圖片來源 ORDER BY 料理價格 ASC"
     df = pd.read_sql(query, cnxn)
-    return df.to_dict('r')
+    return df
 
 if __name__ == "__main__":
     uvicorn.run(app, host="localhost", port="8000")
