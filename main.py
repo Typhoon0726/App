@@ -18,7 +18,8 @@ async def get_data():
 
 @app.get('/price/veg/{veg}')
 async def get_Price_Veg(veg: str):
-    veg_n = veg.split(',')
+    if veg:
+        veg_n = veg.split(',')
     Price_1 = {'veg': veg_n}
     query = "SELECT 作物名稱 AS Name,平均價 AS Price FROM dbo.Veg WHERE "
     for i in range(0, len(Price_1['veg'])):
@@ -31,7 +32,8 @@ async def get_Price_Veg(veg: str):
 
 @app.get('/price/meat/{meat}')
 async def get_Price_Meat(meat: str):
-    meat_n = meat.split(',')
+    if meat:
+        meat_n = meat.split(',')
     Price_2 = {'meat': meat_n}
     query = "SELECT TOP 1 "
     for i in range(0, len(Price_2['meat'])):
@@ -50,71 +52,174 @@ async def get_Price_Meat(meat: str):
 
 @app.get('/price/fish/{fish}')
 async def get_Price_Fish(fish: str):
-    fish_n = fish.split(',')
+    if fish:
+        fish_n = fish.split(',')
     Price_3 = {'fish': fish_n}
-    query = "SELECT 魚貨名稱 AS Name,AVG(魚貨價格) AS Price FROM dbo.Fish WHERE "
+    query = "SELECT 魚貨名稱 AS Name,魚貨價格 AS Price FROM dbo.Fish WHERE "
     for i in range(0, len(Price_3['fish'])):
         query += "魚貨名稱 LIKE (N'%"+Price_3['fish'][i]+"%') "
         if i != len(Price_3['fish'])-1:
             query += "OR "
-    query += "GROUP BY 魚貨名稱"
     df = pd.read_sql(query, cnxn)
     return df.to_dict('r')
 
 
 @app.get('/recipe/normal/{num}')
 async def get_Recipe_Normal(num: int, veg: Optional[str] = None, meat: Optional[str] = None, fish: Optional[str] = None):
-    veg_n = veg.split(',')
-    meat_n = meat.split(',')
-    fish_n = fish.split(',')
-    Request_N = {'num': num, 'veg': veg_n, 'meat': meat_n, 'fish': fish_n}
+    Request_N = {'num': num}
+    if veg:
+        veg_n = veg.split(',')
+        Request_N['veg'] = veg_n
+    if meat:
+        meat_n = meat.split(',')
+        Request_N['meat'] = meat_n
+    if fish:
+        fish_n = fish.split(',')
+        Request_N['fish'] = fish_n
     query = "SELECT TOP " + \
         str(Request_N['num']) + \
-        " 食譜名稱 AS Name,CONCAT(菜食材,',',肉食材,',',魚食材,',',其他食材) AS Ingredients,料理步驟 AS Step,圖片來源 AS IMGSource,AVG(Price1.平均價+Price2."
-    query += '"白肉雞(門市價高屏)"'
-    query += "+Price3.魚貨價格) AS Price FROM dbo.RecipeNormal LEFT JOIN dbo.Veg  AS Price1 ON (作物名稱 LIKE CONCAT('%',dbo.RecipeNormal.菜食材,'%')) LEFT JOIN dbo.Meat AS Price2 ON (日期 = (SELECT TOP 1 日期 FROM dbo.Meat)) LEFT JOIN dbo.Fish  AS Price3 ON (魚貨名稱 LIKE CONCAT('%',dbo.RecipeNormal.魚食材,'%')) WHERE "
-    for i in range(0, len(Request_N['veg'])):
-        query += "菜食材 LIKE (N'%"+Request_N['veg'][i]+"%') OR "
-    for j in range(0, len(Request_N['meat'])):
-        query += "肉食材 LIKE (N'%"+Request_N['meat'][j]+"%') OR "
-    for k in range(0, len(Request_N['fish'])):
-        query += "魚食材 LIKE (N'%"+Request_N['fish'][k]+"%') "
-        if k != len(Request_N['fish'])-1:
-            query += "OR "
-    query += "GROUP BY 食譜名稱,CONCAT(菜食材,',',肉食材,',',魚食材,',',其他食材),料理步驟,圖片來源 ORDER BY CASE WHEN AVG(Price1.平均價+Price2."
-    query += '"白肉雞(門市價高屏)"'
-    query += "+Price3.魚貨價格) IS NULL THEN 1 ELSE 0 END, AVG(Price1.平均價+Price2."
-    query += '"白肉雞(門市價高屏)"'
-    query += "+Price3.魚貨價格) ASC"
+        " 食譜名稱 AS Name,CONCAT(菜食材,',',肉食材,',',魚食材,',',其他食材) AS Ingredients,料理步驟 AS Step,圖片來源 AS IMGSource,AVG("
+    if veg:
+        query += "Price1.平均價"
+        if meat or fish:
+            query += "+"
+    if meat:
+        query += "Price2."
+        query += '"白肉雞(門市價高屏)"'
+        if fish:
+            query += "+"
+    if fish:
+        query += "Price3.魚貨價格"
+    query += ") AS Price FROM dbo.RecipeNormal"
+    if veg:
+        query += " LEFT JOIN dbo.Veg  AS Price1 ON (作物名稱 LIKE CONCAT('%',dbo.RecipeNormal.菜食材,'%'))"
+    if meat:
+        query += " LEFT JOIN dbo.Meat AS Price2 ON (日期 = (SELECT TOP 1 日期 FROM dbo.Meat))"
+    if fish:
+        query += " LEFT JOIN dbo.Fish  AS Price3 ON (魚貨名稱 LIKE CONCAT('%',dbo.RecipeNormal.魚食材,'%'))"
+    query += " WHERE "
+    if veg:
+        for i in range(0, len(Request_N['veg'])):
+            query += "菜食材 LIKE (N'%"+Request_N['veg'][i]+"%') "
+            if meat or fish or i != len(Request_N['veg'])-1:
+                query += "OR "
+    if meat:
+        for j in range(0, len(Request_N['meat'])):
+            query += "肉食材 LIKE (N'%"+Request_N['meat'][j]+"%') "
+            if fish or j != len(Request_N['meat'])-1:
+                query += "OR "
+    if fish:
+        for k in range(0, len(Request_N['fish'])):
+            query += "魚食材 LIKE (N'%"+Request_N['fish'][k]+"%') "
+            if k != len(Request_N['fish'])-1:
+                query += "OR "
+    query += "GROUP BY 食譜名稱,CONCAT(菜食材,',',肉食材,',',魚食材,',',其他食材),料理步驟,圖片來源 ORDER BY CASE WHEN AVG("
+    if veg:
+        query += "Price1.平均價"
+        if meat or fish:
+            query += "+"
+    if meat:
+        query += "Price2."
+        query += '"白肉雞(門市價高屏)"'
+        if fish:
+            query += "+"
+    if fish:
+        query += "Price3.魚貨價格"
+    query += ") IS NULL THEN 1 ELSE 0 END, AVG("
+    if veg:
+        query += "Price1.平均價"
+        if meat or fish:
+            query += "+"
+    if meat:
+        query += "Price2."
+        query += '"白肉雞(門市價高屏)"'
+        if fish:
+            query += "+"
+    if fish:
+        query += "Price3.魚貨價格"
+    query += ") ASC"
+    print(query)
     df = pd.read_sql(query, cnxn)
+    df = df.fillna('資料不足')
     return df.to_dict('r')
 
 
 @app.get('/recipe/soup/{num}')
 async def get_Recipe_Soup(num: int, veg: Optional[str] = None, meat: Optional[str] = None, fish: Optional[str] = None):
-    veg_s = veg.split(',')
-    meat_s = meat.split(',')
-    fish_s = fish.split(',')
-    Request_S = {'num': num, 'veg': veg_s, 'meat': meat_s, 'fish': fish_s}
+    Request_S = {'num': num}
+    if veg:
+        veg_s = veg.split(',')
+        Request_S['veg'] = veg_s
+    if meat:
+        meat_s = meat.split(',')
+        Request_S['meat'] = meat_s
+    if fish:
+        fish_s = fish.split(',')
+        Request_S['fish'] = fish_s
     query = "SELECT TOP " + \
         str(Request_S['num']) + \
-        " 食譜名稱 AS Name,CONCAT(菜食材,',',肉食材,',',魚食材,',',其他食材) AS Ingredients,料理步驟 AS Step,圖片來源 AS IMGSource,AVG(Price1.平均價+Price2."
-    query += '"白肉雞(門市價高屏)"'
-    query += "+Price3.魚貨價格) AS Price FROM dbo.RecipeNormal LEFT JOIN dbo.Veg  AS Price1 ON (作物名稱 LIKE CONCAT('%',dbo.RecipeNormal.菜食材,'%')) LEFT JOIN dbo.Meat AS Price2 ON (日期 = (SELECT TOP 1 日期 FROM dbo.Meat)) LEFT JOIN dbo.Fish  AS Price3 ON (魚貨名稱 LIKE CONCAT('%',dbo.RecipeNormal.魚食材,'%')) WHERE "
-    for i in range(0, len(Request_S['veg'])):
-        query += "菜食材 LIKE (N'%"+Request_S['veg'][i]+"%') OR "
-    for j in range(0, len(Request_S['meat'])):
-        query += "肉食材 LIKE (N'%"+Request_S['meat'][j]+"%') OR "
-    for k in range(0, len(Request_S['fish'])):
-        query += "魚食材 LIKE (N'%"+Request_S['fish'][k]+"%') "
-        if k != len(Request_S['fish'])-1:
-            query += "OR "
-    query += "GROUP BY 食譜名稱,CONCAT(菜食材,',',肉食材,',',魚食材,',',其他食材),料理步驟,圖片來源 ORDER BY CASE WHEN AVG(Price1.平均價+Price2."
-    query += '"白肉雞(門市價高屏)"'
-    query += "+Price3.魚貨價格) IS NULL THEN 1 ELSE 0 END, AVG(Price1.平均價+Price2."
-    query += '"白肉雞(門市價高屏)"'
-    query += "+Price3.魚貨價格) ASC"
+        " 食譜名稱 AS Name,CONCAT(菜食材,',',肉食材,',',魚食材,',',其他食材) AS Ingredients,料理步驟 AS Step,圖片來源 AS IMGSource,AVG("
+    if veg:
+        query += "Price1.平均價"
+        if meat or fish:
+            query += "+"
+    if meat:
+        query += "Price2."
+        query += '"白肉雞(門市價高屏)"'
+        if fish:
+            query += "+"
+    if fish:
+        query += "Price3.魚貨價格"
+    query += ") AS Price FROM dbo.Recipe_Soup"
+    if veg:
+        query += " LEFT JOIN dbo.Veg  AS Price1 ON (作物名稱 LIKE CONCAT('%',dbo.Recipe_Soup.菜食材,'%'))"
+    if meat:
+        query += " LEFT JOIN dbo.Meat AS Price2 ON (日期 = (SELECT TOP 1 日期 FROM dbo.Meat))"
+    if fish:
+        query += " LEFT JOIN dbo.Fish  AS Price3 ON (魚貨名稱 LIKE CONCAT('%',dbo.Recipe_Soup.魚食材,'%'))"
+    query += " WHERE "
+    if veg:
+        for i in range(0, len(Request_S['veg'])):
+            query += "菜食材 LIKE (N'%"+Request_S['veg'][i]+"%') "
+            if meat or fish or i != len(Request_S['meat'])-1:
+                query += "OR "
+    if meat:
+        for j in range(0, len(Request_S['meat'])):
+            query += "肉食材 LIKE (N'%"+Request_S['meat'][j]+"%') "
+            if fish or j != len(Request_S['meat'])-1:
+                query += "OR "
+    if fish:
+        for k in range(0, len(Request_S['fish'])):
+            query += "魚食材 LIKE (N'%"+Request_S['fish'][k]+"%') "
+            if k != len(Request_S['fish'])-1:
+                query += "OR "
+    query += "GROUP BY 食譜名稱,CONCAT(菜食材,',',肉食材,',',魚食材,',',其他食材),料理步驟,圖片來源 ORDER BY CASE WHEN AVG("
+    if veg:
+        query += "Price1.平均價"
+        if meat or fish:
+            query += "+"
+    if meat:
+        query += "Price2."
+        query += '"白肉雞(門市價高屏)"'
+        if fish:
+            query += "+"
+    if fish:
+        query += "+Price3.魚貨價格"
+    query += ") IS NULL THEN 1 ELSE 0 END, AVG("
+    if veg:
+        query += "Price1.平均價"
+        if meat or fish:
+            query += "+"
+    if meat:
+        query += "Price2."
+        query += '"白肉雞(門市價高屏)"'
+        if fish:
+            query += "+"
+    if fish:
+        query += "Price3.魚貨價格"
+    query += ") ASC"
     df = pd.read_sql(query, cnxn)
+    df = df.fillna('資料不足')
     return df.to_dict('r')
 
 if __name__ == "__main__":
