@@ -20,7 +20,7 @@ async def get_data():
 async def get_Price_Veg(veg: str):
     veg_n = veg.split(',')
     Price_1 = {'veg': veg_n}
-    query = "SELECT 作物名稱,平均價 FROM dbo.Veg WHERE "
+    query = "SELECT 作物名稱 AS Name,平均價 AS Price FROM dbo.Veg WHERE "
     for i in range(0, len(Price_1['veg'])):
         query += "作物名稱 LIKE (N'%"+Price_1['veg'][i]+"%') "
         if i != len(Price_1['veg'])-1:
@@ -36,11 +36,11 @@ async def get_Price_Meat(meat: str):
     query = "SELECT TOP 1 "
     for i in range(0, len(Price_2['meat'])):
         if Price_2['meat'][i] == '雞肉':
-            query += '"白肉雞(門市價高屏)"'
+            query += '"白肉雞(門市價高屏)"AS Name1 '
             if len(Price_2['meat']) >= 2 and i == 0:
                 query += ","
         elif Price_2['meat'][i] == '雞蛋':
-            query += '"雞蛋(產地)"'
+            query += '"雞蛋(產地)" AS Name2'
             if len(Price_2['meat']) >= 2 and i == 0:
                 query += ","
     query += " FROM dbo.Meat"
@@ -52,7 +52,7 @@ async def get_Price_Meat(meat: str):
 async def get_Price_Fish(fish: str):
     fish_n = fish.split(',')
     Price_3 = {'fish': fish_n}
-    query = "SELECT 魚貨名稱,AVG(魚貨價格) FROM dbo.Fish WHERE "
+    query = "SELECT 魚貨名稱 AS Name,AVG(魚貨價格) AS Price FROM dbo.Fish WHERE "
     for i in range(0, len(Price_3['fish'])):
         query += "魚貨名稱 LIKE (N'%"+Price_3['fish'][i]+"%') "
         if i != len(Price_3['fish'])-1:
