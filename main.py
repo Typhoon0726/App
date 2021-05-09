@@ -138,7 +138,6 @@ async def get_Recipe_Normal(num: int, veg: Optional[str] = None, meat: Optional[
     if fish:
         query += "Price3.魚貨價格"
     query += ") ASC"
-    print(query)
     df = pd.read_sql(query, cnxn)
     df = df.fillna('資料不足')
     return df.to_dict('r')
