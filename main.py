@@ -12,20 +12,28 @@ cursor = cnxn.cursor()
 
 @app.get('/')
 async def get_data():
-    df = "Wellcome!!"
-    return df
+    query_veg = "SELECT TOP 1 作物名稱 AS Name,平均價 AS Price FROM dbo.Veg ORDER BY 平均價 ASC"
+    df_veg = pd.read_sql(query_veg, cnxn)
+    df_m = df_veg.to_dict('r')
+    query_fish = "SELECT TOP 1 魚貨名稱 AS Name,魚貨價格 AS Price FROM dbo.Fish ORDER BY 魚貨價格 ASC"
+    df_fish = pd.read_sql(query_fish, cnxn)
+    df_m += df_fish.to_dict('r')
+    return df_m
 
 
 @app.get('/price/veg/{veg}')
 async def get_Price_Veg(veg: str):
-    if veg:
-        veg_n = veg.split(',')
-    Price_1 = {'veg': veg_n}
-    query = "SELECT 作物名稱 AS Name,平均價 AS Price FROM dbo.Veg WHERE "
-    for i in range(0, len(Price_1['veg'])):
-        query += "作物名稱 LIKE (N'%"+Price_1['veg'][i]+"%') "
-        if i != len(Price_1['veg'])-1:
-            query += "OR "
+    if veg == '便宜':
+        query = "SELECT TOP 1 作物名稱 AS Name,平均價 AS Price FROM dbo.Veg ORDER BY 平均價 ASC"
+    else:
+        if veg:
+            veg_n = veg.split(',')
+        Price_1 = {'veg': veg_n}
+        query = "SELECT 作物名稱 AS Name,平均價 AS Price FROM dbo.Veg WHERE "
+        for i in range(0, len(Price_1['veg'])):
+            query += "作物名稱 LIKE (N'%"+Price_1['veg'][i]+"%') "
+            if i != len(Price_1['veg'])-1:
+                query += "OR "
     df = pd.read_sql(query, cnxn)
     return df.to_dict('r')
 
@@ -52,14 +60,17 @@ async def get_Price_Meat(meat: str):
 
 @app.get('/price/fish/{fish}')
 async def get_Price_Fish(fish: str):
-    if fish:
-        fish_n = fish.split(',')
-    Price_3 = {'fish': fish_n}
-    query = "SELECT 魚貨名稱 AS Name,魚貨價格 AS Price FROM dbo.Fish WHERE "
-    for i in range(0, len(Price_3['fish'])):
-        query += "魚貨名稱 LIKE (N'%"+Price_3['fish'][i]+"%') "
-        if i != len(Price_3['fish'])-1:
-            query += "OR "
+    if fish == '便宜':
+        query = "SELECT TOP 1 魚貨名稱 AS Name,魚貨價格 AS Price FROM dbo.Fish ORDER BY 魚貨價格 ASC"
+    else:
+        if fish:
+            fish_n = fish.split(',')
+        Price_3 = {'fish': fish_n}
+        query = "SELECT 魚貨名稱 AS Name,魚貨價格 AS Price FROM dbo.Fish WHERE "
+        for i in range(0, len(Price_3['fish'])):
+            query += "魚貨名稱 LIKE (N'%"+Price_3['fish'][i]+"%') "
+            if i != len(Price_3['fish'])-1:
+                query += "OR "
     df = pd.read_sql(query, cnxn)
     return df.to_dict('r')
 
