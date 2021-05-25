@@ -89,7 +89,7 @@ async def get_Recipe_Normal(num: int, veg: Optional[str] = None, meat: Optional[
         Request_N['fish'] = fish_n
     query = "SELECT TOP " + \
         str(Request_N['num']) + \
-        " 食譜名稱 AS Name,CONCAT(菜食材,',',肉食材,',',魚食材,',',其他食材) AS Ingredients,料理步驟 AS Step,圖片來源 AS IMGSource,AVG("
+        " 食譜名稱 AS Name,CONCAT(菜食材,',',肉食材,',',魚食材,',',其他食材) AS Ingredients,料理步驟 AS Step,圖片來源 AS IMGSource,ROUND(AVG("
     if veg:
         query += "Price1.平均價"
         if meat or fish:
@@ -101,7 +101,7 @@ async def get_Recipe_Normal(num: int, veg: Optional[str] = None, meat: Optional[
             query += "+"
     if fish:
         query += "Price3.魚貨價格"
-    query += ") AS Price FROM dbo.RecipeNormal"
+    query += "),0) AS Price FROM dbo.RecipeNormal"
     if veg:
         query += " LEFT JOIN dbo.Veg  AS Price1 ON (作物名稱 LIKE CONCAT('%',dbo.RecipeNormal.菜食材,'%'))"
     if meat:
@@ -168,7 +168,7 @@ async def get_Recipe_Soup(num: int, veg: Optional[str] = None, meat: Optional[st
         Request_S['fish'] = fish_s
     query = "SELECT TOP " + \
         str(Request_S['num']) + \
-        " 食譜名稱 AS Name,CONCAT(菜食材,',',肉食材,',',魚食材,',',其他食材) AS Ingredients,料理步驟 AS Step,圖片來源 AS IMGSource,AVG("
+        " 食譜名稱 AS Name,CONCAT(菜食材,',',肉食材,',',魚食材,',',其他食材) AS Ingredients,料理步驟 AS Step,圖片來源 AS IMGSource,ROUND(AVG("
     if veg:
         query += "Price1.平均價"
         if meat or fish:
@@ -180,7 +180,7 @@ async def get_Recipe_Soup(num: int, veg: Optional[str] = None, meat: Optional[st
             query += "+"
     if fish:
         query += "Price3.魚貨價格"
-    query += ") AS Price FROM dbo.Recipe_Soup"
+    query += "),0) AS Price FROM dbo.Recipe_Soup"
     if veg:
         query += " LEFT JOIN dbo.Veg  AS Price1 ON (作物名稱 LIKE CONCAT('%',dbo.Recipe_Soup.菜食材,'%'))"
     if meat:
