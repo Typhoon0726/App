@@ -151,10 +151,89 @@ async def get_Recipe_Normal(num: int, veg: Optional[str] = None, meat: Optional[
     query += ") ASC"
     df = pd.read_sql(query, cnxn)
     df = df.fillna('資料不足')
-    return df.to_dict('r')
+
+    query_r = "SELECT TOP " + \
+        str(Request_N['num']) + \
+        " 食譜名稱 AS Name, 菜食材 AS Ingredients1,肉食材 AS Ingredients2,魚食材 AS Ingredients3,其他食材 AS Ingredients4"
+    query_r += " FROM dbo.RecipeNormal WHERE "
+    for i in range(0, len(df['Name'])):
+        query_r += "食譜名稱 LIKE (N'%"+df['Name'][i]+"%') "
+        if i != len(df['Name'])-1:
+            query_r += "OR "
+    df_r = pd.read_sql(query_r, cnxn)
+
+    for key in list(df_r['Ingredients1'].keys()):
+        if not df_r['Ingredients1'].get(key):
+            del df_r['Ingredients1'][key]
+    for key in list(df_r['Ingredients2'].keys()):
+        if not df_r['Ingredients2'].get(key):
+            del df_r['Ingredients2'][key]
+    for key in list(df_r['Ingredients3'].keys()):
+        if not df_r['Ingredients3'].get(key):
+            del df_r['Ingredients3'][key]
+    for key in list(df_r['Ingredients4'].keys()):
+        if not df_r['Ingredients4'].get(key):
+            del df_r['Ingredients4'][key]
+    for i in range(0, len(df_r['Ingredients1'])):
+        df_r['Ingredients1'][i] = df_r['Ingredients1'][i].split(',')
+    for i in range(0, len(df_r['Ingredients2'])):
+        df_r['Ingredients2'][i] = df_r['Ingredients2'][i].split(',')
+    for i in range(0, len(df_r['Ingredients3'])):
+        df_r['Ingredients3'][i] = df_r['Ingredients3'][i].split(',')
+    for i in range(0, len(df_r['Ingredients4'])):
+        df_r['Ingredients4'][i] = df_r['Ingredients4'][i].split(',')
+
+    query_veg = "SELECT 作物名稱 AS Name,平均價 AS Price FROM dbo.Veg WHERE "
+    for i in range(0, len(df_r['Ingredients1'])):
+        for j in range(0, len(df_r['Ingredients1'][i])):
+            query_veg += "dbo.Veg.作物名稱 LIKE (N'%" + \
+                df_r['Ingredients1'][i][j]+"%') OR "
+    for i in range(0, len(df_r['Ingredients3'])):
+        for j in range(0, len(df_r['Ingredients3'][i])):
+            query_veg += "dbo.Veg.作物名稱 LIKE (N'%" + \
+                df_r['Ingredients3'][i][j]+"%') OR "
+    for i in range(0, len(df_r['Ingredients4'])):
+        for j in range(0, len(df_r['Ingredients4'][i])):
+            query_veg += "dbo.Veg.作物名稱 LIKE (N'%" + \
+                df_r['Ingredients4'][i][j]+"%') OR "
+            query_veg += "dbo.Veg.作物名稱 LIKE (N'%" + \
+                df_r['Ingredients4'][i][j]+"%') "
+            if (i != len(df_r['Ingredients4'])-1):
+                query_veg += "OR "
+            elif (j != len(df_r['Ingredients4'][i])-1):
+                query_veg += "OR "
+    query_veg += "ORDER BY 平均價 ASC"
+    query_fish = "SELECT 魚貨名稱 AS Name, 魚貨價格 AS Price FROM dbo.Fish WHERE "
+    for i in range(0, len(df_r['Ingredients1'])):
+        for j in range(0, len(df_r['Ingredients1'][i])):
+            query_fish += "dbo.Fish.魚貨名稱 LIKE (N'%" + \
+                df_r['Ingredients1'][i][j]+"%') OR "
+    for i in range(0, len(df_r['Ingredients3'])):
+        for j in range(0, len(df_r['Ingredients3'][i])):
+            query_fish += "dbo.Fish.魚貨名稱 LIKE (N'%" + \
+                df_r['Ingredients3'][i][j]+"%') OR "
+    for i in range(0, len(df_r['Ingredients4'])):
+        for j in range(0, len(df_r['Ingredients4'][i])):
+            query_fish += "dbo.Fish.魚貨名稱 LIKE (N'%" + \
+                df_r['Ingredients4'][i][j]+"%') "
+            if (i != len(df_r['Ingredients4'])-1):
+                query_fish += "OR "
+            elif (j != len(df_r['Ingredients4'][i])-1):
+                query_fish += "OR "
+
+    df_veg = pd.read_sql(query_veg, cnxn)
+    df_fish = pd.read_sql(query_fish, cnxn)
+    z = df_veg.copy()
+    z.update(df_fish)
+    z = z.to_dict('r')
+    df = df.to_dict('r')
+    df_fin = {}
+    df_fin['Recipe'] = df
+    df_fin['Detail'] = z
+    return df_fin
 
 
-@app.get('/recipe/soup/{num}')
+@ app.get('/recipe/soup/{num}')
 async def get_Recipe_Soup(num: int, veg: Optional[str] = None, meat: Optional[str] = None, fish: Optional[str] = None):
     Request_S = {'num': num}
     if veg:
