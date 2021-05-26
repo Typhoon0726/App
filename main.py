@@ -152,9 +152,7 @@ async def get_Recipe_Normal(num: int, veg: Optional[str] = None, meat: Optional[
     df = pd.read_sql(query, cnxn)
     df = df.fillna('資料不足')
 
-    query_r = "SELECT TOP " + \
-        str(Request_N['num']) + \
-        " 食譜名稱 AS Name, 菜食材 AS Ingredients1,肉食材 AS Ingredients2,魚食材 AS Ingredients3,其他食材 AS Ingredients4"
+    query_r = "SELECT 食譜名稱 AS Name, 菜食材 AS Ingredients1,肉食材 AS Ingredients2,魚食材 AS Ingredients3,其他食材 AS Ingredients4"
     query_r += " FROM dbo.RecipeNormal WHERE "
     for i in range(0, len(df['Name'])):
         query_r += "食譜名稱 LIKE (N'%"+df['Name'][i]+"%') "
@@ -162,40 +160,30 @@ async def get_Recipe_Normal(num: int, veg: Optional[str] = None, meat: Optional[
             query_r += "OR "
     df_r = pd.read_sql(query_r, cnxn)
 
-    for key in list(df_r['Ingredients1'].keys()):
-        if not df_r['Ingredients1'].get(key):
-            del df_r['Ingredients1'][key]
-    for key in list(df_r['Ingredients2'].keys()):
-        if not df_r['Ingredients2'].get(key):
-            del df_r['Ingredients2'][key]
-    for key in list(df_r['Ingredients3'].keys()):
-        if not df_r['Ingredients3'].get(key):
-            del df_r['Ingredients3'][key]
-    for key in list(df_r['Ingredients4'].keys()):
-        if not df_r['Ingredients4'].get(key):
-            del df_r['Ingredients4'][key]
-    for i in range(0, len(df_r['Ingredients1'])):
+    temp1 = {k: v for k, v in df_r['Ingredients1'].items() if v}
+    temp2 = {k: v for k, v in df_r['Ingredients2'].items() if v}
+    temp3 = {k: v for k, v in df_r['Ingredients3'].items() if v}
+    temp4 = {k: v for k, v in df_r['Ingredients4'].items() if v}
+    for i in temp1:
         df_r['Ingredients1'][i] = df_r['Ingredients1'][i].split(',')
-    for i in range(0, len(df_r['Ingredients2'])):
+    for i in temp2:
         df_r['Ingredients2'][i] = df_r['Ingredients2'][i].split(',')
-    for i in range(0, len(df_r['Ingredients3'])):
+    for i in temp3:
         df_r['Ingredients3'][i] = df_r['Ingredients3'][i].split(',')
-    for i in range(0, len(df_r['Ingredients4'])):
+    for i in temp4:
         df_r['Ingredients4'][i] = df_r['Ingredients4'][i].split(',')
 
     query_veg = "SELECT 作物名稱 AS Name,平均價 AS Price FROM dbo.Veg WHERE "
-    for i in range(0, len(df_r['Ingredients1'])):
+    for i in temp1:
         for j in range(0, len(df_r['Ingredients1'][i])):
             query_veg += "dbo.Veg.作物名稱 LIKE (N'%" + \
                 df_r['Ingredients1'][i][j]+"%') OR "
-    for i in range(0, len(df_r['Ingredients3'])):
+    for i in temp3:
         for j in range(0, len(df_r['Ingredients3'][i])):
             query_veg += "dbo.Veg.作物名稱 LIKE (N'%" + \
                 df_r['Ingredients3'][i][j]+"%') OR "
-    for i in range(0, len(df_r['Ingredients4'])):
+    for i in temp4:
         for j in range(0, len(df_r['Ingredients4'][i])):
-            query_veg += "dbo.Veg.作物名稱 LIKE (N'%" + \
-                df_r['Ingredients4'][i][j]+"%') OR "
             query_veg += "dbo.Veg.作物名稱 LIKE (N'%" + \
                 df_r['Ingredients4'][i][j]+"%') "
             if (i != len(df_r['Ingredients4'])-1):
@@ -204,15 +192,15 @@ async def get_Recipe_Normal(num: int, veg: Optional[str] = None, meat: Optional[
                 query_veg += "OR "
     query_veg += "ORDER BY 平均價 ASC"
     query_fish = "SELECT 魚貨名稱 AS Name, 魚貨價格 AS Price FROM dbo.Fish WHERE "
-    for i in range(0, len(df_r['Ingredients1'])):
+    for i in temp1:
         for j in range(0, len(df_r['Ingredients1'][i])):
             query_fish += "dbo.Fish.魚貨名稱 LIKE (N'%" + \
                 df_r['Ingredients1'][i][j]+"%') OR "
-    for i in range(0, len(df_r['Ingredients3'])):
+    for i in temp3:
         for j in range(0, len(df_r['Ingredients3'][i])):
             query_fish += "dbo.Fish.魚貨名稱 LIKE (N'%" + \
                 df_r['Ingredients3'][i][j]+"%') OR "
-    for i in range(0, len(df_r['Ingredients4'])):
+    for i in temp4:
         for j in range(0, len(df_r['Ingredients4'][i])):
             query_fish += "dbo.Fish.魚貨名稱 LIKE (N'%" + \
                 df_r['Ingredients4'][i][j]+"%') "
